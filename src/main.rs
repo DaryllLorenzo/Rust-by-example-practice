@@ -4,6 +4,7 @@ mod hello_world;
 mod primitives;
 mod basic_to_do;
 mod generics_traits;
+mod shopping;
 
 fn main(){
     let ex1 = hello_world::HelloWorld::new();
@@ -16,4 +17,6 @@ fn main(){
     ex3.run();
 
     let _ex4 = generics_traits::Program::execute();
+
+    let _ex5 = shopping::Shopping::run();
 }
