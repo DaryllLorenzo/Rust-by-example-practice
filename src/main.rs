@@ -6,6 +6,7 @@ mod basic_to_do;
 mod generics_traits;
 mod shopping;
 mod lifetimes;
+mod generics_traits_lifetimes;
 
 fn main(){
     let ex1 = hello_world::HelloWorld::new();
@@ -22,4 +23,6 @@ fn main(){
     shopping::Shopping::run();
 
     lifetimes::Lifetimes::run();
+
+    generics_traits_lifetimes::GTL::run();
 }
