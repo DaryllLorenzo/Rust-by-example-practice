@@ -11,21 +11,21 @@ impl GTL {
         println!("----------------------------- Ex7 Generics, traits, lifetimes --------------");
 
         // Crear item para cualquier tipo
-        let libro1 = Libro{
+        let mut libro1 = Libro{
             autor : String::from("Pepe"),
             paginas : 32
         };
 
-        let item1 = LibraryItem::new(&libro1, estado::estado_fijo(estado_fijo::Disponible));
+        let item1 = LibraryItem::new(&mut libro1, estado::estado_fijo(estado_fijo::Disponible));
 
         println!("Library item 1: {:?}", item1);
 
-        let dvd1 = DVD{
+        let mut dvd1 = DVD{
             director: String::from("Juan"),
             duracion: 5
         };
 
-        let item2 = LibraryItem::new(&dvd1, estado::estado_fijo(estado_fijo::Disponible));
+        let item2 = LibraryItem::new(&mut dvd1, estado::estado_fijo(estado_fijo::Disponible));
 
         println!("Library item 2: {:?}", item2);
 
@@ -34,6 +34,19 @@ impl GTL {
         // GTL::verificar_lectura(item2); Da error porque item DVD no implementa el trait Legible
 
         GTL::procesar_item_lectura_paginable_escucha(&item1, &item2);
+
+        let mut libro2 = Libro{
+            autor : String::from("Juan"),
+            paginas : 15
+        };
+        let mut item3 = LibraryItem::new(&mut libro2, estado::estado_fijo(estado_fijo::Disponible));
+        let usuario1 = String::from("Prestamista");
+        let prestamo = GTL::prestar_item(&mut item3, &usuario1);
+        println!("Prestamo aplicado al item: {:?}", prestamo);
+
+        println!("Probando edicion de libro");
+        LibraryItem::editar_libro(prestamo.0, libro1);
+        println!("Libro de prestamo actualizado: {:?}", prestamo.0);
     }
 
 
@@ -51,16 +64,21 @@ impl GTL {
         println!("Item legible y con paginas: {:?}", item.content);
         println!("Item escuchable: {:?}", item2.content);
     }
+
+    fn prestar_item<'a,'b, T>(item: &'a mut LibraryItem<'a, T>, user: &'b String) -> (&'a mut LibraryItem<'a, T>, &'b str){
+        item.estado = estado::estado_fijo(estado_fijo::Prestado);
+        return (item, user.as_str());
+    }
 }
 
 #[derive(Debug)]
 struct LibraryItem<'a, T>{
-    content: &'a T,
+    content: &'a mut T,
     estado: estado
 }
 
 impl<'a, T> LibraryItem<'a, T>{
-    fn new(content: &'a T, estado: estado) -> Self{
+    fn new(content: &'a mut T, estado: estado) -> Self{
         LibraryItem { content, estado }
     }
 }
@@ -101,7 +119,7 @@ trait Legible {
 }
 
 trait Paginable {
-    fn paginar(&self) -> ();
+    fn paginar(self) -> Libro;
 }
 
 trait Escuchable{
@@ -121,8 +139,9 @@ impl Legible for Libro {
 }
 
 impl Paginable for Libro{
-    fn paginar(&self) -> () {
+    fn paginar(self) -> Libro {
         println!("Paginar...");
+        self
     }
 }
 
@@ -130,4 +149,37 @@ impl Escuchable for DVD{
     fn escuchar()->(){
         println!("Escuchando");
     }
+}
+
+impl<'a, 'b> GestionBiblioteca<'a> for LibraryItem<'b, Libro>
+where Libro: Paginable
+{
+    type Item = LibraryItem<'b, Libro>;
+    type Item2 = Libro;
+    fn editar_libro(item: &'a mut Self::Item, item_actualizado: Self::Item2) -> &'a Self::Item {
+        let libro = item_actualizado.paginar();
+        item.content.autor = libro.autor;
+        item.content.paginas = libro.paginas;
+        return item;
+    }
+}
+
+// ── Tipos asociados (type Item) ───────────────
+// - 1 impl por struct
+// - Define UN tipo fijo por implementación
+// - Ideal cuando la relación es única (ej: Iterator → Item)
+
+// ── Traits genéricos (trait Foo<T>) ───────────
+// - Múltiples impls por struct (una por T distinto)
+// - Ideal para relaciones flexibles (ej: From<T>, Into<T>)
+
+// Regla rápida:
+// "Uno a uno" → type Item
+// "Uno a muchos" → trait con <T>
+
+trait GestionBiblioteca<'a> {
+    type Item;
+    type Item2;
+
+    fn editar_libro(item: &'a mut Self::Item, item_actualizado: Self::Item2) -> &'a Self::Item;
 }
