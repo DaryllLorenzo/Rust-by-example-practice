@@ -47,6 +47,30 @@ impl GTL {
         println!("Probando edicion de libro");
         LibraryItem::editar_libro(prestamo.0, libro1);
         println!("Libro de prestamo actualizado: {:?}", prestamo.0);
+
+        let mut ll1 = Libro{
+            autor : String::from("Pepe"),
+            paginas : 32
+        };
+        let mut ll2 = Libro{
+            autor : String::from("Pea"),
+            paginas : 33
+        };
+
+        let itemm1 = LibraryItem::new(&mut ll1, estado::estado_fijo(estado_fijo::Disponible));
+        let itemm2 = LibraryItem::new(&mut ll2, estado::estado_fijo(estado_fijo::Disponible));
+
+        let mut biblioteca = Biblioteca::new();
+
+        biblioteca.add_item(itemm1);
+        biblioteca.add_item(itemm2);
+
+        biblioteca.list_items();
+
+        // Para tener multiples items de otros tipos en la biblioteca variante enum... revisar
+        
+
+
     }
 
 
@@ -182,4 +206,28 @@ trait GestionBiblioteca<'a> {
     type Item2;
 
     fn editar_libro(item: &'a mut Self::Item, item_actualizado: Self::Item2) -> &'a Self::Item;
+}
+
+
+struct Biblioteca<'a, T>{
+    items: Vec<LibraryItem<'a, T>>
+}
+
+impl<'a, T> Biblioteca<'a, T>
+where T: Debug
+{
+    fn new() -> Self{
+        Biblioteca { items: vec![] }
+    }
+
+    fn add_item(&mut self, item: LibraryItem<'a, T>){
+        self.items.push(item);
+    }
+
+    fn list_items(&self){
+        println!("----- ITEMS EN LA BIBLIOTECA ----- ");
+        for item in self.items.iter(){
+            println!("{:?}", item);
+        }
+    }
 }
