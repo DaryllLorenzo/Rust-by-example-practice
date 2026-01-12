@@ -48,28 +48,37 @@ impl GTL {
         LibraryItem::editar_libro(prestamo.0, libro1);
         println!("Libro de prestamo actualizado: {:?}", prestamo.0);
 
-        let mut ll1 = Libro{
-            autor : String::from("Pepe"),
-            paginas : 32
-        };
-        let mut ll2 = Libro{
-            autor : String::from("Pea"),
-            paginas : 33
-        };
+        let mut ll1 = media::Libro(
+            Libro {
+                autor : String::from("Pepe"),
+                paginas : 32
+            }
+        );
+        let mut ll2 = media::Libro(
+            Libro{
+                autor : String::from("Pea"),
+                paginas : 33
+            }
+        );
+
+        let mut dvdd1 = media::DVD(
+            DVD {
+                director: String::from("Al"),
+                duracion: 12
+            }
+        );
 
         let itemm1 = LibraryItem::new(&mut ll1, estado::estado_fijo(estado_fijo::Disponible));
         let itemm2 = LibraryItem::new(&mut ll2, estado::estado_fijo(estado_fijo::Disponible));
+        let itemm3 = LibraryItem::new(&mut dvdd1, estado::estado_fijo(estado_fijo::Disponible));
 
         let mut biblioteca = Biblioteca::new();
 
         biblioteca.add_item(itemm1);
         biblioteca.add_item(itemm2);
+        biblioteca.add_item(itemm3);
 
         biblioteca.list_items();
-
-        // Para tener multiples items de otros tipos en la biblioteca variante enum... revisar
-        
-
 
     }
 
@@ -213,14 +222,13 @@ struct Biblioteca<'a, T>{
     items: Vec<LibraryItem<'a, T>>
 }
 
-impl<'a, T> Biblioteca<'a, T>
-where T: Debug
+impl<'a> Biblioteca<'a, media>
 {
     fn new() -> Self{
         Biblioteca { items: vec![] }
     }
 
-    fn add_item(&mut self, item: LibraryItem<'a, T>){
+    fn add_item(&mut self, item: LibraryItem<'a, media>){
         self.items.push(item);
     }
 
@@ -231,3 +239,11 @@ where T: Debug
         }
     }
 }
+
+#[derive(Debug)]
+enum media {
+    Libro(Libro),
+    DVD(DVD),
+    Revista(Revista)
+}
+
