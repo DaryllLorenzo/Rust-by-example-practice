@@ -80,6 +80,18 @@ impl GTL {
 
         biblioteca.list_items();
 
+        // get_items_references retorna Vec<&LibraryItem> (referencias a los items existentes)
+        let vector_items = biblioteca.get_items_references(); 
+        // ^ Vec en stack (24 bytes) que contiene referencias a los items en biblioteca.items
+        
+        let trait_objects_vec: Vec<&dyn Informativo> = vector_items
+                                        .into_iter() // Consume vector_items (libera solo el Vec)
+                                        .map(|item| item as &dyn Informativo)
+                                        .collect(); // Crea nuevo Vec<&dyn Informativo>
+
+        // &trait_objects_vec se coerce automáticamente a &[&dyn Informativo] (slice)
+        GTL::procesar_varios(&trait_objects_vec);
+
     }
 
 
@@ -101,6 +113,12 @@ impl GTL {
     fn prestar_item<'a,'b, T>(item: &'a mut LibraryItem<'a, T>, user: &'b String) -> (&'a mut LibraryItem<'a, T>, &'b str){
         item.estado = estado::estado_fijo(estado_fijo::Prestado);
         return (item, user.as_str());
+    }
+
+    fn procesar_varios(slice: &[&dyn Informativo]){
+        for item in slice.iter(){
+            item.info();
+        }
     }
 }
 
@@ -238,6 +256,14 @@ impl<'a> Biblioteca<'a, media>
             println!("{:?}", item);
         }
     }
+
+    fn get_items_references(&self)-> Vec<&LibraryItem<'a, media>>{
+        let mut objects = vec![];
+        for item in self.items.iter(){
+            objects.push(item);
+        }
+        return objects;
+    }
 }
 
 #[derive(Debug)]
@@ -247,3 +273,14 @@ enum media {
     Revista(Revista)
 }
 
+trait Informativo{
+    fn info(&self)->();
+}
+
+impl<'a, T> Informativo for LibraryItem<'a, T>
+where T: Debug
+{
+    fn info(&self)->() {
+        println!("INFO of ITEM: {:?}", self.content);
+    }
+}
