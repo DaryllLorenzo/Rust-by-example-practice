@@ -7,6 +7,7 @@ mod generics_traits;
 mod shopping;
 mod lifetimes;
 mod generics_traits_lifetimes;
+mod fearless_concurrency;
 
 fn main(){
     let ex1 = hello_world::HelloWorld::new();
@@ -25,4 +26,6 @@ fn main(){
     lifetimes::Lifetimes::run();
 
     generics_traits_lifetimes::GTL::run();
+
+    fearless_concurrency::FC::run();
 }
