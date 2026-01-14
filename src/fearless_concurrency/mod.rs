@@ -1,5 +1,6 @@
 pub struct FC{}
 
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -37,6 +38,8 @@ impl FC {
 
         println!("-------- mutex test --------");
         FC::mutext_test();
+        FC::mutex_test_2();
+        FC::test_message_passing();
 
     }
 
@@ -94,6 +97,52 @@ impl FC {
 
         let result = *counter.lock().unwrap();
         println!("Total: {}", result);
+    }
+
+    fn mutex_test_2(){
+        let counter = Arc::new(Mutex::new(0));
+        let mut handlers = vec![];
+        let num_threads = 10;
+
+        for _ in 0..num_threads {
+            let c = Arc::clone(&counter);
+
+            let handler = thread::spawn(move || {
+                let mut value = c.lock().unwrap();
+                *value += 1;
+            });
+
+            handlers.push(handler);
+        }
+
+        for handler in handlers.into_iter() {
+            handler.join().unwrap();
+        } 
+
+        let sum = *counter.lock().unwrap();
+        println!("Sum: {}", sum);
+    }
+
+
+    // One major tool Rust has for accomplishing message-sending concurrency
+    // is the channel, a programming concept that Rust’s standard library provides
+    // an implementation of. You can imagine a channel in programming as being
+    // like a channel of water, such as a stream or river. If you put something like
+    // a rubber duck or boat into a stream, it will travel downstream to the end of
+    // the waterway.
+    // A channel
+    fn test_message_passing(){
+        use std::sync::mpsc; // multiple producer, single consumer
+
+        let (tx, rx) = mpsc::channel(); // transmitter and receiver
+
+        thread::spawn(move || {
+            let val = String::from("My string");
+            tx.send(val).unwrap();
+        });
+
+        let received = rx.recv().unwrap();
+        println!("Got: {}", received);
     }
     
 }
