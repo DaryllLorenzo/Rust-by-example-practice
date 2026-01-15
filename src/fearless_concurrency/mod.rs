@@ -1,6 +1,6 @@
 pub struct FC{}
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 use std::time::Duration;
 
@@ -40,6 +40,8 @@ impl FC {
         FC::mutext_test();
         FC::mutex_test_2();
         FC::test_message_passing();
+        FC::testing_sending_multiple_values();
+        FC::testing_multiple_producers();
 
     }
 
@@ -143,6 +145,67 @@ impl FC {
 
         let received = rx.recv().unwrap();
         println!("Got: {}", received);
+    }
+
+
+    fn testing_sending_multiple_values(){
+        let (tx, rx) = mpsc::channel();
+
+        thread::spawn(move || {
+            let vals = vec![
+                String::from("String1"),
+                String::from("String2"),
+                String::from("String3"),
+                String::from("String4")
+            ];
+
+            for val in vals {
+                tx.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+
+        for received in rx {
+            println!("Got: {}", received);
+        }
+    }
+
+    fn testing_multiple_producers(){
+        println!("------- Multiples producers ----------");
+        let (tx, rx) = mpsc::channel();
+
+        let tx1 = mpsc::Sender::clone(&tx);
+        thread::spawn(move || {
+            let vals = vec![
+                String::from("String1"),
+                String::from("String2"),
+                String::from("String3"),
+                String::from("String4")
+            ];
+
+            for val in vals {
+                tx1.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+
+        thread::spawn(move || {
+            let vals = vec![
+                String::from("String5"),
+                String::from("String6"),
+                String::from("String7"),
+                String::from("String8")
+            ];
+
+            for val in vals {
+                tx.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+
+        for received in rx {
+            println!("Got: {}", received);
+        }
     }
     
 }
