@@ -8,8 +8,10 @@ mod shopping;
 mod lifetimes;
 mod generics_traits_lifetimes;
 mod fearless_concurrency;
+mod tokio_mod;
 
-fn main(){
+#[tokio::main]
+async fn main(){
     let ex1 = hello_world::HelloWorld::new();
     ex1.greet();
 
@@ -28,4 +30,6 @@ fn main(){
     generics_traits_lifetimes::GTL::run();
 
     fearless_concurrency::FC::run();
+
+    tokio_mod::tk::run().await;
 }
